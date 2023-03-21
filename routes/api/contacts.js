@@ -1,25 +1,37 @@
-const express = require('express')
+const express = require("express");
+const {
+  listContacts,
+  getContactById,
+  addContact,
+  removeContact,
+  updateContact,
+  updateStatusContact,
+} = require("../../models/contacts");
 
-const router = express.Router()
+const {
+  checkUserAddData,
+  checkUserPutData,
+  checkContactId,
+  checkStatusData,
+} = require("../../middlewares/userMIddlewares");
 
-router.get('/', async (req, res, next) => {
-  res.json({ message: 'template message' })
-})
+const router = express.Router();
 
-router.get('/:contactId', async (req, res, next) => {
-  res.json({ message: 'template message' })
-})
+router.get("/", listContacts);
 
-router.post('/', async (req, res, next) => {
-  res.json({ message: 'template message' })
-})
+router.get("/:contactId", checkContactId, getContactById);
 
-router.delete('/:contactId', async (req, res, next) => {
-  res.json({ message: 'template message' })
-})
+router.post("/", checkUserAddData, addContact);
 
-router.put('/:contactId', async (req, res, next) => {
-  res.json({ message: 'template message' })
-})
+router.delete("/:contactId", checkContactId, removeContact);
 
-module.exports = router
+router.put("/:contactId", checkContactId, checkUserPutData, updateContact);
+
+router.patch(
+  "/:contactId/favorite",
+  checkContactId,
+  checkStatusData,
+  updateStatusContact
+);
+
+module.exports = router;
