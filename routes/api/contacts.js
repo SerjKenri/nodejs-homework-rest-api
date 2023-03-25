@@ -13,7 +13,7 @@ const {
   checkUserPutData,
   checkContactId,
   checkStatusData,
-} = require("../../middlewares/userMiddlewares");
+} = require("../../middlewares/userMIddlewares");
 
 const router = express.Router();
 
