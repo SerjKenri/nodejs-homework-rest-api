@@ -19,7 +19,7 @@ const router = express.Router();
 router
   .post("/register", checkRegData, register)
   .post("/login", checkLoginData, login)
-  .get("/logout", auth, checkLogoutData, logout)
+  .post("/logout", auth, checkLogoutData, logout)
   .get("/current", auth, current)
   .patch("/", auth, checkSubscription, updateSubscription);
 

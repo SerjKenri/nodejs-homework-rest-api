@@ -12,13 +12,9 @@ const register = async (req, res, next) => {
     newUser.setPassword(password);
     await newUser.save();
     res.status(201).json({
-      status: "success",
-      code: 201,
-      data: {
-        user: {
-          email: `${email}`,
-          subscription: "starter",
-        },
+      user: {
+        email: `${email}`,
+        subscription: "starter",
       },
     });
   } catch (error) {
@@ -39,11 +35,11 @@ const login = async (req, res, next) => {
   user.setToken(token);
   await user.save();
 
-  res.json({
-    status: "success",
-    code: 200,
-    data: {
-      token,
+  res.status(200).json({
+    token,
+    user: {
+      email: `${email}`,
+      subscription: user.subscription,
     },
   });
 };
@@ -53,13 +49,7 @@ const logout = async (req, res, next) => {
     const user = await User.findOne({ _id: req.user._id });
     user.setToken(null);
     await user.save();
-    res.json({
-      status: "success",
-      code: 204,
-      data: {
-        message: "No content",
-      },
-    });
+    return res.status(204).json({ message: "No content" });
   } catch (error) {
     next(error);
   }
@@ -71,13 +61,9 @@ const current = async (req, res, next) => {
     const { email, subscription } = user;
     user.password = undefined;
 
-    res.json({
-      status: "success",
-      code: 200,
-      data: {
-        email,
-        subscription,
-      },
+    res.status(200).json({
+      email: email,
+      subscription: subscription,
     });
   } catch (error) {
     next(error);
