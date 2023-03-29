@@ -13,19 +13,27 @@ const {
   checkUserPutData,
   checkContactId,
   checkStatusData,
-} = require("../../middlewares/userMIddlewares");
+} = require("../../middlewares/contactMIddlewares");
+
+const { auth } = require("../../middlewares/userMIddlewares");
 
 const router = express.Router();
 
-router.get("/", listContacts);
+router.get("/", auth, listContacts);
 
-router.get("/:contactId", checkContactId, getContactById);
+router.get("/:contactId", auth, checkContactId, getContactById);
 
-router.post("/", checkUserAddData, addContact);
+router.post("/", auth, checkUserAddData, addContact);
 
-router.delete("/:contactId", checkContactId, removeContact);
+router.delete("/:contactId", auth, checkContactId, removeContact);
 
-router.put("/:contactId", checkContactId, checkUserPutData, updateContact);
+router.put(
+  "/:contactId",
+  auth,
+  checkContactId,
+  checkUserPutData,
+  updateContact
+);
 
 router.patch(
   "/:contactId/favorite",

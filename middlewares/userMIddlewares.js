@@ -1,65 +1,92 @@
-const { Types } = require("mongoose");
-const Contact = require("../service/schemas/contact");
-const {
-  createUserValidator,
-  updateStatusValidator,
-  changeUserValidator,
-} = require("../utils/validator");
+const passport = require("passport");
+const passportJWT = require("passport-jwt");
+const User = require("../service/schemas/user");
+const { userValidator, subsValidator } = require("../utils/validator");
+require("dotenv").config();
+const secret = process.env.SECRET;
 
-const checkUserAddData = async ({ body }, res, next) => {
-  const { value } = createUserValidator(body);
+const ExtractJWT = passportJWT.ExtractJwt;
+const Strategy = passportJWT.Strategy;
+const params = {
+  secretOrKey: secret,
+  jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
+};
 
-  const requiredFields = ["name", "email", "phone"];
-  for (const field of requiredFields) {
-    if (!value[field]) {
-      return res
-        .status(400)
-        .json({ message: `missing required ${field} field` });
+passport.use(
+  new Strategy(params, function (payload, done) {
+    User.find({ _id: payload.id })
+      .then(([user]) => {
+        if (!user) {
+          return done(new Error("User not found"));
+        }
+        return done(null, user);
+      })
+      .catch((error) => done(error));
+  })
+);
+
+const auth = (req, res, next) => {
+  passport.authenticate("jwt", { session: false }, (err, user) => {
+    if (!user || err) {
+      return res.status(401).json({ message: "Not authorized" });
     }
+    req.user = user;
+    next();
+  })(req, res, next);
+};
+
+const checkRegData = async (req, res, next) => {
+  const { email } = req.body;
+  const { error, value } = userValidator(req.body);
+  if (error) return res.status(400).json({ message: error.details[0].message });
+  const user = await User.findOne({ email });
+  if (user) return res.status(409).json({ message: "Email in use" });
+  req.body = value;
+  next();
+};
+
+const checkLoginData = async (req, res, next) => {
+  const { error, value } = userValidator(req.body);
+  if (error) return res.status(400).json({ message: error.details[0].message });
+
+  const { email, password } = req.body;
+  const user = await User.findOne({ email });
+
+  if (!user || !user.validPassword(password)) {
+    return res.status(401).json({ message: "Email or password is wrong" });
   }
-  const contactExists = await Contact.exists({ email: value.email });
-  if (contactExists)
-    return res
-      .status(409)
-      .json({ message: "Contact with this email already exists..." });
-
-  body = value;
-
-  next();
-};
-
-const checkUserPutData = (req, res, next) => {
-  const { error, value } = changeUserValidator(req.body);
-
-  if (error) return res.status(400).json({ message: "missing fields" });
-
   req.body = value;
-
   next();
 };
 
-const checkStatusData = (req, res, next) => {
-  const { error, value } = updateStatusValidator(req.body);
-
-  if (error) return res.status(400).json({ message: "missing field favorite" });
-
-  req.body = value;
-
+const checkLogoutData = async (req, res, next) => {
+  const user = await User.findOne({ _id: req.user._id });
+  if (!user) return res.status(401).json({ message: "Not authoruzed" });
   next();
 };
 
-const checkContactId = (req, res, next) => {
-  const { contactId } = req.params;
+const checkSubscription = async (req, res, next) => {
+  const { subscription, userId } = req.body;
 
-  const idIsValid = Types.ObjectId.isValid(contactId);
-  if (!idIsValid) return res.status(404).json({ message: "Not Found" });
+  const user = await User.findOne({ _id: userId });
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const { error } = subsValidator({ subscription });
+
+  if (error)
+    return res.status(400).json({
+      message: error.details[0].message,
+    });
 
   next();
 };
 
 module.exports = {
-  checkUserAddData,
-  checkUserPutData,
-  checkStatusData,
-  checkContactId,
+  auth,
+  checkRegData,
+  checkLoginData,
+  checkLogoutData,
+  checkSubscription,
 };

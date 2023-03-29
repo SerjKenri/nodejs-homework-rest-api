@@ -1,8 +1,10 @@
-const service = require("../service");
+const service = require("../service/index");
 require("colors");
 
 const listContacts = async (req, res, next) => {
-  const data = await service.getAllContacts();
+  const { limit, page, favorite } = req.query;
+  const data = await service.getAllContacts(limit, page, favorite);
+
   res.status(200).json(data);
 };
 
@@ -26,15 +28,21 @@ const removeContact = async (req, res, next) => {
   }
 };
 
-const addContact = async (req, res, next) => {
+const addContact = async (req, res) => {
   try {
+    console.log(req.user);
     const { name, email, phone, favorite } = req.body;
     const contact = await service.createContact({
+      owner: req.user,
       name,
       email,
       phone,
       favorite,
     });
+
+    contact.owner.password = undefined;
+    contact.owner.token = undefined;
+
     res.status(201).json(contact);
   } catch (error) {
     console.log(`Error: ${error.message}`.red);

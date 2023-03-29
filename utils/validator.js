@@ -26,8 +26,26 @@ const updateStatusValidator = (data) =>
     })
     .validate(data);
 
+const subsValidator = (data) =>
+  joi
+    .object()
+    .keys({
+      subscription: joi.string().valid("starter", "pro", "business"),
+    })
+    .validate(data);
+
+const userValidator = (data) =>
+  joi
+    .object({
+      email: joi.string().email().required(),
+      password: joi.string().min(6).required(),
+    })
+    .validate(data);
+
 module.exports = {
   createUserValidator,
   updateStatusValidator,
   changeUserValidator,
+  userValidator,
+  subsValidator,
 };

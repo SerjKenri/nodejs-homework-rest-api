@@ -22,6 +22,11 @@ const contact = new Schema(
       type: Boolean,
       default: false,
     },
+    owner: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: [true, "Contact must have an owner.."],
+    },
   },
   { versionKey: false, timestamps: false }
 );
