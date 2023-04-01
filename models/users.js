@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../service/schemas/user");
+const ImageService = require("../service/imageService");
 require("dotenv").config();
 
 const secret = process.env.SECRET;
@@ -31,7 +32,7 @@ const login = async (req, res, next) => {
     email: user.email,
   };
 
-  const token = jwt.sign(payload, secret, { expiresIn: "1h" });
+  const token = jwt.sign(payload, secret, { expiresIn: "1d" });
   user.setToken(token);
   await user.save();
 
@@ -87,4 +88,27 @@ const updateSubscription = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login, logout, current, updateSubscription };
+const updateAvatar = async (req, res) => {
+  const { user, file } = req;
+
+  if (file) {
+    user.avatarURL = await ImageService.save(file, 250, 250, "avatars");
+  }
+
+  Object.keys(req.body).forEach((key) => {
+    user[key] = req.body[key];
+  });
+
+  const updateUser = await user.save();
+
+  res.status(200).json({ avatarURL: updateUser.avatarURL });
+};
+
+module.exports = {
+  register,
+  login,
+  logout,
+  current,
+  updateSubscription,
+  updateAvatar,
+};
