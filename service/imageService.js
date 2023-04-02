@@ -48,7 +48,7 @@ class ImageService {
     await Jimp.read(file.path)
       .then((newFile) => {
         return newFile
-          .resize(width, height || Jimp.AUTO)
+          .cover(width, height || Jimp.AUTO)
           .quality(90)
           .writeAsync(path.join(fullFilePath, fileName));
       })
