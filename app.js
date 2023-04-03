@@ -27,6 +27,8 @@ mongoose
 app.use(cors());
 app.use(express.json());
 
+app.use(express.static("public/avatars"));
+
 app.use("/api/contacts", contactsRouter);
 app.use("/api/users", userRouter);
 

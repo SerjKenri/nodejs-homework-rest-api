@@ -1,6 +1,7 @@
 const passport = require("passport");
 const passportJWT = require("passport-jwt");
 const User = require("../service/schemas/user");
+const ImageService = require("../service/imageService");
 const { userValidator, subsValidator } = require("../utils/validator");
 require("dotenv").config();
 const secret = process.env.SECRET;
@@ -83,10 +84,13 @@ const checkSubscription = async (req, res, next) => {
   next();
 };
 
+const uploadUserPhoto = ImageService.upload("avatar");
+
 module.exports = {
   auth,
   checkRegData,
   checkLoginData,
   checkLogoutData,
   checkSubscription,
+  uploadUserPhoto,
 };
