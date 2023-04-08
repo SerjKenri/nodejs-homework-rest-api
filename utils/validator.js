@@ -42,20 +42,12 @@ const userValidator = (data) =>
     })
     .validate(data);
 
-// const updateAvatarValidator = (data) =>
-//   Joi.object()
-//     .keys({
-//       avatar: Joi.file()
-//         .mimetype([
-//           "image/png",
-//           "image/jpeg",
-//           "image/gif",
-//           "image/jpg",
-//           "image/webp",
-//         ])
-//         .required(),
-//     })
-//     .validate(data);
+const verifyValidator = (data) =>
+  joi
+    .object({
+      email: joi.string().email().required(),
+    })
+    .validate(data);
 
 module.exports = {
   createUserValidator,
@@ -63,5 +55,5 @@ module.exports = {
   changeUserValidator,
   userValidator,
   subsValidator,
-  // updateAvatarValidator,
+  verifyValidator,
 };
