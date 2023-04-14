@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../service/schemas/user");
 const ImageService = require("../service/imageService");
+const sendConfirmEmail = require("../service/emailService");
 require("dotenv").config();
 
 const secret = process.env.SECRET;
@@ -12,6 +13,7 @@ const register = async (req, res, next) => {
     const newUser = new User({ email, password, subscription });
     newUser.setPassword(password);
     await newUser.save();
+    sendConfirmEmail(email, newUser.verificationToken);
     res.status(201).json({
       user: {
         email: `${email}`,
@@ -104,6 +106,36 @@ const updateAvatar = async (req, res) => {
   res.status(200).json({ avatarURL: updateUser.avatarURL });
 };
 
+const verifyUser = async (req, res) => {
+  try {
+    const token = req.params.verificationToken;
+    const user = await User.findOne({ verificationToken: token });
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    user.setVerify(true);
+    await user.save();
+
+    res.status(200).json({ message: "Verification successful" });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const resendVerifToken = async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({ email });
+
+    sendConfirmEmail(email, user.verificationToken);
+
+    res.status(200).json({ message: "Verification email sent" });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -111,4 +143,6 @@ module.exports = {
   current,
   updateSubscription,
   updateAvatar,
+  verifyUser,
+  resendVerifToken,
 };
